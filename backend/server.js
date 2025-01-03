@@ -242,10 +242,6 @@ app.post("/stake", (req, res) => {
   });
 });
 
-
-// Start a trade session
-let db = loadDB();
-
 // Start trade session and return user balance
 app.get("/trade", (req, res) => {
   const { username } = req.query;
