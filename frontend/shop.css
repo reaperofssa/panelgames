@@ -1,5 +1,3 @@
-/* style.css */
-
 /* Reset and base styles */
 body {
   margin: 0;
@@ -29,6 +27,18 @@ body {
   margin-bottom: 20px;
   letter-spacing: 1px;
   color: #ffdf70;
+}
+
+/* Balance container styling */
+#balance-container {
+  margin-bottom: 20px;
+  font-size: 18px;
+  color: #ffdf70;
+}
+
+#balance-container span {
+  font-weight: bold;
+  color: #ffffff;
 }
 
 /* Item container styling */
@@ -86,6 +96,32 @@ body {
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
 }
 
+/* Purchase details section styling */
+#purchase-details {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  color: #ffdf70;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  text-align: left;
+}
+
+#purchase-details p {
+  margin: 5px 0;
+  font-size: 14px;
+  color: #ffffff;
+}
+
+#purchase-details a {
+  color: #00c6ff;
+  text-decoration: none;
+}
+
+#purchase-details a:hover {
+  text-decoration: underline;
+}
+
 /* Responsive design */
 @media (max-width: 600px) {
   #shop-container {
@@ -96,7 +132,7 @@ body {
     font-size: 28px;
   }
 
-  .item p {
+  .item p, #balance-container, #purchase-details p {
     font-size: 14px;
   }
 
