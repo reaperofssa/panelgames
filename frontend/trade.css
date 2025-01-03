@@ -1,0 +1,113 @@
+/* style.css */
+
+/* Base styles */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #ff8c00, #ff2e63);
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Trade container */
+#trade-container {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  width: 90%;
+  max-width: 500px;
+}
+
+/* Header styles */
+#trade-container h1 {
+  font-size: 36px;
+  margin-bottom: 20px;
+  color: #ffdf70;
+}
+
+/* Balance display */
+#trade-container p {
+  font-size: 18px;
+  margin: 15px 0;
+}
+
+#balance {
+  font-weight: bold;
+  color: #00ffcc;
+}
+
+/* Buttons */
+button {
+  width: 100%;
+  padding: 15px;
+  margin: 10px 0;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* Trade button styling */
+#trade-btn {
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
+  color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+#trade-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Cashout button styling (disabled state) */
+#cashout-btn {
+  background: linear-gradient(135deg, #c0c0c0, #7d7d7d);
+  color: #fff;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+#cashout-btn:enabled {
+  background: linear-gradient(135deg, #00ff7f, #00cc66);
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+#cashout-btn:enabled:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Back button styling */
+#back-btn {
+  background: linear-gradient(135deg, #ff5858, #ff0000);
+  color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+#back-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Responsive design */
+@media (max-width: 600px) {
+  #trade-container {
+    padding: 20px;
+  }
+
+  #trade-container h1 {
+    font-size: 28px;
+  }
+
+  button {
+    font-size: 14px;
+    padding: 12px;
+  }
+}
