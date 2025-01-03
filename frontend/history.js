@@ -10,16 +10,23 @@ document.addEventListener("DOMContentLoaded", () => {
   // Fetch and display the user's transaction history
   const fetchTransactions = async () => {
     try {
-      const response = await fetch(`/transactions?username=${currentUser}`);
+      const response = await fetch("/transactions", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Username": currentUser, // Pass username as a header
+        },
+      });
+
       const data = await response.json();
 
       const transactionList = document.getElementById("transaction-list");
       transactionList.innerHTML = ""; // Clear existing content
 
       if (data.success && data.transactions && data.transactions.length > 0) {
-        data.transactions.forEach(transaction => {
+        data.transactions.forEach((transaction) => {
           const listItem = document.createElement("li");
-          
+
           // Display transaction details dynamically
           listItem.textContent = transaction.type
             ? `${transaction.type.toUpperCase()} - ${
