@@ -20,6 +20,16 @@ let db = JSON.parse(fs.readFileSync(dbFile));
 // Helper to save database to file
 const saveDB = () => fs.writeFileSync(dbFile, JSON.stringify(db, null, 2));
 
+const dbPath = "db.json";
+const loadDB = () => {
+  try {
+    return JSON.parse(fs.readFileSync(dbPath, "utf8"));
+  } catch (error) {
+    console.error("Error reading db.json:", error);
+    throw new Error("Internal server error.");
+  }
+};
+
 // Serve static files (HTML, CSS, JS) from the frontend directory
 app.use(express.static(path.join(__dirname, "../frontend")));
 app.use(express.json());
@@ -58,28 +68,11 @@ app.post("/signup", (req, res) => {
 // Fetch balance
 app.get("/balance", (req, res) => {
   const { username } = req.query;
-
-  // Validate username
-  if (!username) {
-    return res.status(400).json({ success: false, message: "Username is required." });
+  if (db[username]) {
+    res.json({ balance: db[username].balance });
+  } else {
+    res.json({ balance: 0 });
   }
-
-  let db;
-  try {
-    db = loadDB();
-  } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
-  }
-
-  // Check if user exists
-  const user = db[username];
-  if (!user) {
-    return res.status(404).json({ success: false, message: "User not found." });
-  }
-
-  // Return balance
-  const userBalance = user.balance || 0;
-  return res.json({ success: true, balance: userBalance });
 });
 
 // Purchase route
@@ -257,19 +250,30 @@ app.post("/stake", (req, res) => {
 
 // Start trade session and return user balance
 app.get("/trade", (req, res) => {
+app.get("/trade", (req, res) => {
   const { username } = req.query;
 
+  // Validate username
   if (!username) {
     return res.status(400).json({ success: false, message: "Username is required." });
   }
 
-  if (!db[username]) {
+  let db;
+  try {
+    db = loadDB();
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+
+  // Check if user exists
+  const user = db[username];
+  if (!user) {
     return res.status(404).json({ success: false, message: "User not found." });
   }
 
-  const userBalance = db[username].balance || 0;
-
-  res.json({
+  // Return balance and start trade session message
+  const userBalance = user.balance || 0;
+  return res.json({
     success: true,
     balance: userBalance,
     message: "Trade session started.",
