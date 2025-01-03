@@ -63,6 +63,6 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("DOMContentLoaded", fetchBalance);
   stakeBtn.addEventListener("click", stakeTokens);
   backBtn.addEventListener("click", () => {
-    window.location.href = "home.html";
+    window.location.href = "home";
   });
 });
