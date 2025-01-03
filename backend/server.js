@@ -113,7 +113,7 @@ app.post("/buy", (req, res) => {
 
   // Construct the success message using details from shop.json
   const { username: shopUsername, password, link } = purchasedItem; // Get credentials from shop.json
-  const successMessage = `Purchase of ${itemDetails.description} successful!\n\nUsername: ${shopUsername}\nPassword: ${password}\nLink: ${link}`;
+  const successMessage = `Purchase of ${itemDetails.description} successful!\n\nUsername: ${shopUsername}\nPassword: ${password}\nLink: ${link}\n\nPlease screenshot this page for your records.`;
 
   res.json({
     success: true,
@@ -172,16 +172,17 @@ app.post("/send", (req, res) => {
 });
 
 app.get("/transactions", (req, res) => {
-  const { username } = req.query;
+  // Get the username from headers or query parameters
+  const username = req.headers.username || req.query.username;
 
   // Validate the username
   if (!username) {
     return res.status(400).json({ success: false, message: "Username is required." });
   }
 
-  // Load user data from db.json
   let db;
   try {
+    // Load user data from db.json
     db = JSON.parse(fs.readFileSync(dbPath, "utf8"));
   } catch (error) {
     console.error("Error reading db.json:", error);
@@ -196,7 +197,7 @@ app.get("/transactions", (req, res) => {
 
   // Return the user's transactions
   const transactions = user.transactions || [];
-  return res.json({ success: true, transactions });
+  res.json({ success: true, transactions });
 });
 
 // Stake route
