@@ -20,16 +20,6 @@ let db = JSON.parse(fs.readFileSync(dbFile));
 // Helper to save database to file
 const saveDB = () => fs.writeFileSync(dbFile, JSON.stringify(db, null, 2));
 
-const dbPath = "db.json";
-const loadDB = () => {
-  try {
-    return JSON.parse(fs.readFileSync(dbPath, "utf8"));
-  } catch (error) {
-    console.error("Error reading db.json:", error);
-    throw new Error("Internal server error.");
-  }
-};
-
 // Serve static files (HTML, CSS, JS) from the frontend directory
 app.use(express.static(path.join(__dirname, "../frontend")));
 app.use(express.json());
@@ -121,14 +111,15 @@ app.post("/buy", (req, res) => {
   // Save the updated user balance
   saveDB();
 
-  // Construct the success message with the required details
-  const successMessage = `Purchase of ${itemDetails.description} successful!\n\nUsername: ${username}\nPassword: ${db[username].password}\nLink: https://panel.navocloud.com`;
+  // Construct the success message using details from shop.json
+  const { username: shopUsername, password, link } = purchasedItem; // Get credentials from shop.json
+  const successMessage = `Purchase of ${itemDetails.description} successful!\n\nUsername: ${shopUsername}\nPassword: ${password}\nLink: ${link}`;
 
   res.json({
     success: true,
-    message: successMessage,  // Send the constructed message
+    message: successMessage, // Send the constructed message
     item: purchasedItem,
-    updatedShopData: shopData // Send the updated shop data back
+    updatedShopData: shopData, // Send the updated shop data back
   });
 });
 
