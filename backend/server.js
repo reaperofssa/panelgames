@@ -20,6 +20,26 @@ let db = JSON.parse(fs.readFileSync(dbFile));
 // Helper to save database to file
 const saveDB = () => fs.writeFileSync(dbFile, JSON.stringify(db, null, 2));
 
+const addDailyBonus = () => {
+  const db = loadDB();
+
+  Object.keys(db).forEach((username) => {
+    if (db[username].balance !== undefined) {
+      db[username].balance += 100;
+    }
+  });
+
+  saveDB(db);
+  console.log("Daily bonus added to all users.");
+};
+
+// Schedule the task to run every 24 hours
+cron.schedule("0 0 * * *", () => {
+  console.log("Running daily bonus task...");
+  addDailyBonus();
+});
+
+
 // Serve static files (HTML, CSS, JS) from the frontend directory
 app.use(express.static(path.join(__dirname, "../frontend")));
 app.use(express.json());
