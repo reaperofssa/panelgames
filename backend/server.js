@@ -249,106 +249,58 @@ app.post("/stake", (req, res) => {
 });
 
 // Start trade session and return user balance
-app.get("/trade", (req, res) => {
-  const { username } = req.query;
+let trades = {}; // Store active trades for each user
 
-  // Validate username
-  if (!username) {
-    return res.status(400).json({ success: false, message: "Username is required." });
-  }
-
-  let db;
-  try {
-    db = loadDB();
-  } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
-  }
-
-  // Check if user exists
-  const user = db[username];
-  if (!user) {
-    return res.status(404).json({ success: false, message: "User not found." });
-  }
-
-  // Return balance and start trade session message
-  const userBalance = user.balance || 0;
-  return res.json({
-    success: true,
-    balance: userBalance,
-    message: "Trade session started.",
-  });
-});
-
-// Update trade balance during trading
-app.post("/update-trade", (req, res) => {
-  const { username, amount, tradeAction } = req.body;
-
-  if (!username || amount === undefined || !tradeAction) {
-    return res.status(400).json({ success: false, message: "Invalid request. Provide username, amount, and tradeAction." });
-  }
-
-  if (!db[username]) {
-    return res.status(404).json({ success: false, message: "User not found." });
-  }
-
-  const userBalance = db[username].balance || 0;
-
-  if (tradeAction === "update") {
-    if (amount < 0) {
-      return res.status(400).json({ success: false, message: "Invalid amount. Cannot be negative." });
-    }
-
-    db[username].balance = amount;
-  } else {
-    return res.status(400).json({ success: false, message: "Invalid trade action. Use 'update'." });
-  }
-
-  // Log the transaction
-  db[username].transactions.push({
-    type: "trade",
-    tradeAction,
-    amount,
-    newBalance: db[username].balance,
-    timestamp: new Date().toISOString(),
-  });
-
-  saveDB();
-
-  res.json({
-    success: true,
-    newBalance: db[username].balance,
-    message: `Trade balance updated to ${amount} successfully.`,
-  });
-});
-
-// Cashout and return the updated balance
-app.post("/cashout", (req, res) => {
+// Start trading
+app.post("/trade/start", (req, res) => {
   const { username } = req.body;
 
-  if (!username) {
-    return res.status(400).json({ success: false, message: "Username is required." });
+  if (!db[username]) {
+    return res.status(404).json({ success: false, message: "User not found." });
   }
+
+  if (trades[username]) {
+    return res.status(400).json({ success: false, message: "Trade already in progress." });
+  }
+
+  trades[username] = {
+    interval: setInterval(() => {
+      const change = parseFloat((Math.random() * (2.89 - 0.12) + 0.12).toFixed(2));
+      const direction = Math.random() < 0.5 ? -1 : 1;
+      const update = direction * change;
+
+      db[username].balance += update;
+      saveDB();
+    }, 1000), // Update every second
+  };
+
+  res.json({ success: true, message: "Trade started." });
+});
+
+// Cash out trade
+app.post("/trade/cashout", (req, res) => {
+  const { username } = req.body;
 
   if (!db[username]) {
     return res.status(404).json({ success: false, message: "User not found." });
   }
 
-  const userBalance = db[username].balance || 0;
+  const trade = trades[username];
 
-  // Log the cashout
-  db[username].transactions.push({
-    type: "cashout",
-    amount: userBalance,
-    newBalance: userBalance,
-    timestamp: new Date().toISOString(),
-  });
+  if (!trade) {
+    return res.status(400).json({ success: false, message: "No active trade to cash out." });
+  }
+
+  // Stop the trading interval
+  clearInterval(trade.interval);
+  delete trades[username];
 
   saveDB();
 
   res.json({
     success: true,
-    message: "Cashout successful!",
-    balance: userBalance,
+    newBalance: db[username].balance,
+    message: "Trade cashed out successfully.",
   });
 });
 
