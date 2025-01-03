@@ -201,54 +201,79 @@ app.post("/stake", (req, res) => {
 });
 
 
+// Start a trade session
 app.get("/trade", (req, res) => {
   const { username } = req.query;
 
   if (!db[username]) {
-    return res.json({ success: false, message: "User not found." });
+    return res.status(404).json({ success: false, message: "User not found." });
   }
 
-  // Reset user balance to 0 and save initial trade balance in trades/<username>Trade.json
-  const tradeFilePath = path.join(tradesDir, `${username}Trade.json`);
-  fs.writeFileSync(tradeFilePath, JSON.stringify({ tradeBalance: db[username].balance }, null, 2));
-  db[username].balance = 0;
-  fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
-
-  res.json({ success: true, balance: 0 });
+  res.json({
+    success: true,
+    balance: db[username].balance,
+    message: "Trade session started.",
+  });
 });
 
 // Update trade balance during trading
 app.post("/update-trade", (req, res) => {
-  const { username, tradeBalance } = req.body;
-  const tradeFilePath = path.join(tradesDir, `${username}Trade.json`);
+  const { username, amount, tradeAction } = req.body;
 
-  if (!fs.existsSync(tradeFilePath)) {
-    return res.json({ success: false, message: "Trade session not found." });
+  if (!db[username]) {
+    return res.status(404).json({ success: false, message: "User not found." });
   }
 
-  fs.writeFileSync(tradeFilePath, JSON.stringify({ tradeBalance }, null, 2));
-  res.json({ success: true, message: "Trade balance updated." });
+  if (amount <= 0) {
+    return res.status(400).json({ success: false, message: "Invalid amount." });
+  }
+
+  if (db[username].balance < amount && tradeAction === "decrease") {
+    return res.status(400).json({ success: false, message: "Insufficient balance." });
+  }
+
+  // Update balance based on trade action
+  if (tradeAction === "increase") {
+    db[username].balance += amount;
+  } else if (tradeAction === "decrease") {
+    db[username].balance -= amount;
+  } else {
+    return res.status(400).json({ success: false, message: "Invalid trade action." });
+  }
+
+  // Log the trade transaction
+  db[username].transactions.push({
+    type: "trade",
+    tradeAction,
+    amount,
+    newBalance: db[username].balance,
+    timestamp: new Date().toISOString(),
+  });
+
+  saveDB();
+
+  res.json({
+    success: true,
+    newBalance: db[username].balance,
+    message: `Trade ${tradeAction} of ${amount} tokens completed successfully.`,
+  });
 });
 
 // Cashout and update user balance
 app.post("/cashout", (req, res) => {
   const { username } = req.body;
-  const tradeFilePath = path.join(tradesDir, `${username}Trade.json`);
 
   if (!db[username]) {
-    return res.json({ success: false, message: "User not found." });
+    return res.status(404).json({ success: false, message: "User not found." });
   }
 
-  if (!fs.existsSync(tradeFilePath)) {
-    return res.json({ success: false, message: "Trade session not found." });
-  }
+  const userBalance = db[username].balance;
 
-  const { tradeBalance } = JSON.parse(fs.readFileSync(tradeFilePath));
-  db[username].balance = tradeBalance; // Push trade balance to user balance
-  fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
-  fs.unlinkSync(tradeFilePath); // Remove trade file after cashout
-
-  res.json({ success: true, message: "Cashout successful! Your balance has been updated." });
+  res.json({
+    success: true,
+    message: "Cashout successful!",
+    balance: userBalance,
+  });
 });
 
 // Start server
