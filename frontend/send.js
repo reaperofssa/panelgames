@@ -30,5 +30,5 @@ document.getElementById("send-token-btn").addEventListener("click", () => {
 
 // Back button functionality
 document.getElementById("back-btn").addEventListener("click", () => {
-  window.location.href = "home.html";
+  window.location.href = "home";
 });
