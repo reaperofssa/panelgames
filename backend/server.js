@@ -250,7 +250,6 @@ app.post("/stake", (req, res) => {
 
 // Start trade session and return user balance
 app.get("/trade", (req, res) => {
-app.get("/trade", (req, res) => {
   const { username } = req.query;
 
   // Validate username
@@ -355,4 +354,3 @@ app.post("/cashout", (req, res) => {
 
 // Start server
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-);
