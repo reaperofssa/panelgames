@@ -5,10 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Shop</title>
   <link rel="stylesheet" href="shop.css">
+  <meta http-equiv="Cache-Control" content="no-store">
 </head>
 <body>
   <div id="shop-container">
     <h2>Shop</h2>
+
+    <!-- User Balance -->
+    <div id="balance-container">
+      <p>Your Balance: <span id="balance">0</span> Tokens</p>
+    </div>
+
+    <!-- Items for Sale -->
     <div class="item">
       <p>Panel 3GB - 2 Weeks</p>
       <p>Price: 3000 Tokens</p>
@@ -24,8 +32,16 @@
       <p>Price: 1700 Tokens</p>
       <button class="buy-btn" data-item="3gb1week">Buy</button>
     </div>
+
+    <!-- Back Button -->
     <button id="back-btn">Back</button>
+
+    <!-- Purchase Details -->
+    <div id="purchase-details" style="display: none; margin-top: 20px; border: 1px solid #ccc; padding: 10px;">
+      <!-- Purchase details will be inserted here dynamically -->
+    </div>
   </div>
+
   <script src="shop.js"></script>
 </body>
 </html>
