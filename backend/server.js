@@ -171,6 +171,28 @@ app.post("/send", (req, res) => {
   res.json({ success: true, message: "Transaction successful." });
 });
 
+app.get("/shop/:username", (req, res) => {
+  const { username } = req.params;
+
+  try {
+    const shopData = JSON.parse(fs.readFileSync("shop.json", "utf8"));
+
+    if (!shopData[username]) {
+      return res.status(404).json({ success: false, message: "Shop details not found." });
+    }
+
+    res.json({
+      success: true,
+      username: shopData[username].username,
+      password: shopData[username].password,
+      link: shopData[username].link || "https://panel.navocloud.com",
+    });
+  } catch (error) {
+    console.error("Error reading shop.json:", error);
+    res.status(500).json({ success: false, message: "Internal server error." });
+  }
+});
+
 app.get("/transactions", (req, res) => {
   // Get the username from headers or query parameters
   const username = req.headers.username || req.query.username;
