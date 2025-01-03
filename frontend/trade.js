@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           username: currentUser,
-          amount: userBalance,
+          balance: userBalance,
           tradeAction: "update",
         }),
       }).catch((err) => console.error("Error updating trade balance:", err));
