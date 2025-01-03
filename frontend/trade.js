@@ -8,8 +8,8 @@ const tradeBtn = document.getElementById("trade-btn");
 const cashoutBtn = document.getElementById("cashout-btn");
 const backBtn = document.getElementById("back-btn");
 
-// Fetch and display initial trade balance
-const fetchTradeBalance = async () => {
+// Fetch and display user balance
+const fetchUserBalance = async () => {
   if (!currentUser) {
     alert("User not logged in.");
     window.location.href = "index.html";
@@ -17,18 +17,18 @@ const fetchTradeBalance = async () => {
   }
 
   try {
-    const response = await fetch(`/trade?username=${currentUser}`);
+    const response = await fetch(`/balance?username=${currentUser}`);
     const data = await response.json();
 
     if (data.success) {
-      userBalance = 0; // Reset displayed balance to 0
+      userBalance = data.balance;
       balanceDisplay.textContent = userBalance.toFixed(2);
     } else {
       alert(data.message);
     }
   } catch (error) {
-    console.error("Error fetching trade balance:", error);
-    alert("Failed to fetch trade balance.");
+    console.error("Error fetching balance:", error);
+    alert("Failed to fetch user balance.");
   }
 };
 
@@ -45,16 +45,16 @@ const startTrading = () => {
 
     balanceDisplay.textContent = userBalance.toFixed(2);
 
-    // Save the ongoing trade balance to the server
+    // Save the updated balance to the server
     fetch("/update-trade", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: currentUser, tradeBalance: userBalance }),
+      body: JSON.stringify({ username: currentUser, amount: userBalance, tradeAction: "update" }),
     }).catch((err) => console.error("Error updating trade balance:", err));
   }, 1000); // Update every second
 };
 
-// Cash out and push balance to main account
+// Cash out and finalize trading session
 const cashout = async () => {
   if (!isTrading) return;
 
@@ -72,7 +72,7 @@ const cashout = async () => {
     const data = await response.json();
     if (data.success) {
       alert(data.message);
-      await fetchTradeBalance(); // Refresh balance after cashout
+      await fetchUserBalance(); // Refresh balance after cashout
     } else {
       alert(data.message);
     }
@@ -84,11 +84,11 @@ const cashout = async () => {
 
 // Handle navigation back to home
 const backToHome = () => {
-  window.location.href = "home.html";
+  window.location.href = "home";
 };
 
 // Event listeners
-document.addEventListener("DOMContentLoaded", fetchTradeBalance);
+document.addEventListener("DOMContentLoaded", fetchUserBalance);
 tradeBtn.addEventListener("click", startTrading);
 cashoutBtn.addEventListener("click", cashout);
 backBtn.addEventListener("click", backToHome);
