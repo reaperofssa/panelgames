@@ -78,27 +78,32 @@ app.post("/buy", (req, res) => {
   const itemDetails = shopItems[item];
   const userBalance = db[username].balance;
 
-  if (userBalance >= itemDetails.price) {
-    db[username].balance -= itemDetails.price;
+  // Load shop data
+  const shopDataPath = "./shop.json";
+  const shopData = fs.existsSync(shopDataPath) 
+    ? JSON.parse(fs.readFileSync(shopDataPath)) 
+    : [];
 
-    const shopData = fs.existsSync("./shop.json")
-      ? JSON.parse(fs.readFileSync("./shop.json"))
-      : [];
-
-    shopData.push({
-      username,
-      password: db[username].password,
-      link: "https://panel.navocloud.com",
-      item: itemDetails.description,
-    });
-
-    fs.writeFileSync("./shop.json", JSON.stringify(shopData, null, 2));
-    saveDB();
-
-    res.json({ success: true, message: `Purchase of ${itemDetails.description} successful.` });
-  } else {
-    res.json({ success: false, message: "Insufficient balance." });
+  // Check if the item is available in the shop
+  const availableItemIndex = shopData.findIndex(shopItem => shopItem.item === itemDetails.description);
+  if (availableItemIndex === -1) {
+    return res.json({ success: false, message: "Item is no longer available. Please check back later." });
   }
+
+  // Check if user has enough balance
+  if (userBalance < itemDetails.price) {
+    return res.json({ success: false, message: "Insufficient balance." });
+  }
+
+  // Deduct balance and assign the item
+  db[username].balance -= itemDetails.price;
+  const purchasedItem = shopData.splice(availableItemIndex, 1)[0]; // Remove the item
+  fs.writeFileSync(shopDataPath, JSON.stringify(shopData, null, 2)); // Save updated shop data
+
+  // Save the updated user balance
+  saveDB();
+
+  res.json({ success: true, message: `Purchase of ${itemDetails.description} successful.`, item: purchasedItem });
 });
 
 // Send tokens
