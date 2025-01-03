@@ -7,6 +7,12 @@ const PORT = 3000;
 
 require("./telegrambot");
 
+const tradesDir = "./trades";
+
+if (!fs.existsSync(tradesDir)) {
+  fs.mkdirSync(tradesDir);
+}
+
 const dbFile = path.join(__dirname, "db.json");
 let db = JSON.parse(fs.readFileSync(dbFile));
 
@@ -162,6 +168,10 @@ app.post("/stake", (req, res) => {
     return res.status(404).json({ success: false, message: "User not found." });
   }
 
+  if (amount <= 0) {
+    return res.status(400).json({ success: false, message: "Invalid stake amount." });
+  }
+
   if (db[username].balance < amount) {
     return res.status(400).json({ success: false, message: "Insufficient balance." });
   }
@@ -169,53 +179,76 @@ app.post("/stake", (req, res) => {
   const won = Math.random() < 0.5; // 50% chance to win
   const stakeResult = won ? amount : -amount;
 
+  // Update user's balance and log transaction
   db[username].balance += stakeResult;
-  db[username].transactions.push(`Staked ${amount}: ${won ? "Won" : "Lost"} ${Math.abs(stakeResult)}`);
+  db[username].transactions.push({
+    type: "stake",
+    amount,
+    outcome: won ? "won" : "lost",
+    result: stakeResult,
+    timestamp: new Date().toISOString(),
+  });
 
   saveDB();
 
   res.json({
     success: true,
     newBalance: db[username].balance,
-    message: won ? `Congratulations! You won ${amount * 2} tokens.` : "You lost the staked amount.",
+    message: won
+      ? `Congratulations! You won ${amount} tokens.`
+      : `You lost ${amount} tokens.`,
   });
 });
 
-// Trade balance
-const tradeFilesDir = path.join(__dirname, "trades");
-if (!fs.existsSync(tradeFilesDir)) fs.mkdirSync(tradeFilesDir);
 
 app.get("/trade", (req, res) => {
   const { username } = req.query;
-  const tradeFile = path.join(tradeFilesDir, `${username}_trade.json`);
-
-  if (!fs.existsSync(tradeFile)) {
-    const initialTradeData = { balance: db[username]?.balance || 0 };
-    fs.writeFileSync(tradeFile, JSON.stringify(initialTradeData, null, 2));
-  }
-
-  const tradeData = JSON.parse(fs.readFileSync(tradeFile));
-  res.json(tradeData);
-});
-
-// Cashout
-app.post("/cashout", (req, res) => {
-  const { username, newBalance } = req.body;
-  const tradeFile = path.join(tradeFilesDir, `${username}_trade.json`);
 
   if (!db[username]) {
-    return res.status(404).json({ success: false, message: "User not found." });
+    return res.json({ success: false, message: "User not found." });
   }
 
-  if (!fs.existsSync(tradeFile)) {
-    return res.status(400).json({ success: false, message: "Trade file not found." });
+  // Reset user balance to 0 and save initial trade balance in trades/<username>Trade.json
+  const tradeFilePath = path.join(tradesDir, `${username}Trade.json`);
+  fs.writeFileSync(tradeFilePath, JSON.stringify({ tradeBalance: db[username].balance }, null, 2));
+  db[username].balance = 0;
+  fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
+
+  res.json({ success: true, balance: 0 });
+});
+
+// Update trade balance during trading
+app.post("/update-trade", (req, res) => {
+  const { username, tradeBalance } = req.body;
+  const tradeFilePath = path.join(tradesDir, `${username}Trade.json`);
+
+  if (!fs.existsSync(tradeFilePath)) {
+    return res.json({ success: false, message: "Trade session not found." });
   }
 
-  db[username].balance = newBalance;
-  fs.writeFileSync(tradeFile, JSON.stringify({ balance: newBalance }, null, 2));
-  saveDB();
+  fs.writeFileSync(tradeFilePath, JSON.stringify({ tradeBalance }, null, 2));
+  res.json({ success: true, message: "Trade balance updated." });
+});
 
-  res.json({ success: true, message: "Cashout successful.", balance: db[username].balance });
+// Cashout and update user balance
+app.post("/cashout", (req, res) => {
+  const { username } = req.body;
+  const tradeFilePath = path.join(tradesDir, `${username}Trade.json`);
+
+  if (!db[username]) {
+    return res.json({ success: false, message: "User not found." });
+  }
+
+  if (!fs.existsSync(tradeFilePath)) {
+    return res.json({ success: false, message: "Trade session not found." });
+  }
+
+  const { tradeBalance } = JSON.parse(fs.readFileSync(tradeFilePath));
+  db[username].balance = tradeBalance; // Push trade balance to user balance
+  fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
+  fs.unlinkSync(tradeFilePath); // Remove trade file after cashout
+
+  res.json({ success: true, message: "Cashout successful! Your balance has been updated." });
 });
 
 // Start server
