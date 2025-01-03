@@ -17,10 +17,14 @@ document.addEventListener("DOMContentLoaded", () => {
       })
         .then(res => res.json())
         .then(data => {
+          alert(data.message);
           if (data.success) {
-            alert(data.message);
-          } else {
-            alert(data.message);
+            // Update balance display after successful purchase
+            fetch(`/balance?username=${currentUser}`)
+              .then(res => res.json())
+              .then(balanceData => {
+                document.getElementById("balance").textContent = balanceData.balance.toFixed(2);
+              });
           }
         });
     });
