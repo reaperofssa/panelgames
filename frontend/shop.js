@@ -13,6 +13,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const fetchBalance = async () => {
     try {
       const response = await fetch(`/balance?username=${currentUser}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch balance.");
+      }
       const data = await response.json();
       balanceDisplay.textContent = data.balance.toFixed(2);
     } catch (error) {
@@ -21,37 +24,40 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  // Initial balance fetch
+  fetchBalance();
+
   // Attach click event to all "buy" buttons
   document.querySelectorAll(".buy-btn").forEach(button => {
     button.addEventListener("click", async () => {
       const item = button.getAttribute("data-item");
 
       try {
-        // Send purchase request
         const response = await fetch("/buy", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username: currentUser, item }),
         });
+
         const data = await response.json();
-
         if (data.success) {
-          // Fetch username and password from shop.json
-          const shopResponse = await fetch(`/shop/${currentUser}`);
-          const shopData = await shopResponse.json();
-
-          // Display purchase details
-          purchaseDetails.innerHTML = `
-            <p><strong>Purchase Successful!</strong></p>
-            <p>Item: ${item}</p>
-            <p>Username: ${shopData.username}</p>
-            <p>Password: ${shopData.password}</p>
-            <p>Panel Link: <a href="${shopData.link}" target="_blank">${shopData.link}</a></p>
-          `;
-          purchaseDetails.style.display = "block";
+          // Display success message in an alert
+          alert(data.message);
 
           // Update the balance display
-          fetchBalance();
+          await fetchBalance();
+
+          // Update purchase confirmation details with data from the server
+          const { item } = data;
+          purchaseDetails.innerHTML = `
+            <p><strong>Purchase Successful!</strong></p>
+            <p>Item: ${item.item}</p>
+            <p>Username: ${item.username}</p>
+            <p>Password: ${item.password}</p>
+            <p>Panel Link: <a href="${item.link}" target="_blank">${item.link}</a></p>
+            <p>Please screenshot this page for your records.</p>
+          `;
+          purchaseDetails.style.display = "block";
         } else {
           alert(data.message);
         }
@@ -66,7 +72,4 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("back-btn").addEventListener("click", () => {
     window.location.href = "home";
   });
-
-  // Fetch initial balance
-  fetchBalance();
 });
