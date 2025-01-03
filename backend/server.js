@@ -110,7 +110,15 @@ app.post("/buy", (req, res) => {
   // Save the updated user balance
   saveDB();
 
-  res.json({ success: true, message: `Purchase of ${itemDetails.description} successful.`, item: purchasedItem });
+  // Construct the success message with the required details
+  const successMessage = `Purchase of ${itemDetails.description} successful!\n\nUsername: ${username}\nPassword: ${db[username].password}\nLink: https://panel.navocloud.com`;
+
+  res.json({
+    success: true,
+    message: successMessage,  // Send the constructed message
+    item: purchasedItem,
+    updatedShopData: shopData // Send the updated shop data back
+  });
 });
 
 // Send tokens
