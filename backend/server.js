@@ -30,6 +30,7 @@ app.get("/history", (req, res) => res.sendFile(path.join(__dirname, "../frontend
 app.get("/send", (req, res) => res.sendFile(path.join(__dirname, "../frontend/send.html")));
 app.get("/stake", (req, res) => res.sendFile(path.join(__dirname, "../frontend/stake.html")));
 app.get("/trade", (req, res) => res.sendFile(path.join(__dirname, "../frontend/trade.html")));
+app.get("/index.html", (req, res) => res.sendFile(path.join(__dirname, "../frontend/index.html")));
 
 // Login endpoint
 app.post("/login", (req, res) => {
@@ -158,6 +159,38 @@ app.post("/send", (req, res) => {
   saveDB();
 
   res.json({ success: true, message: "Transaction successful." });
+});
+
+app.get("/transactions", (req, res) => {
+  const { username } = req.query;
+
+  // Validate username
+  if (!username) {
+    return res.status(400).json({ success: false, message: "Username is required." });
+  }
+
+  // Load user data from db.json
+  let db;
+  try {
+    db = JSON.parse(fs.readFileSync(dbPath, "utf-8"));
+  } catch (error) {
+    console.error("Error reading db.json:", error);
+    return res.status(500).json({ success: false, message: "Internal server error." });
+  }
+
+  const user = db[username];
+
+  // Validate if user exists
+  if (!user) {
+    return res.status(404).json({ success: false, message: "User not found." });
+  }
+
+  // Return transactions
+  if (user.transactions && user.transactions.length > 0) {
+    return res.json({ success: true, transactions: user.transactions });
+  } else {
+    return res.json({ success: true, transactions: [] });
+  }
 });
 
 // Stake route
