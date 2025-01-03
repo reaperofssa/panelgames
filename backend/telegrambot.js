@@ -1,35 +1,52 @@
 const TelegramBot = require("node-telegram-bot-api");
 const fs = require("fs");
 
-const token = "7928488118:AAH5GNgLlnJkdZT6tV2CohMZAe3dQWMEEXc";
-const bot = new TelegramBot(token, { polling: true });
-
+let botInstance = null;
 const shopFile = "./shop.json";
 
-// Handle commands for different items
-bot.onText(/\/3gb2weeks (.+)/, (msg, match) => {
-  handleShopCommand(msg, match[1], "Panel 3GB - 2 Weeks");
-});
+// Function to create and initialize the bot
+function createBot() {
+  if (!botInstance) {
+    const token = "7928488118:AAH5GNgLlnJkdZT6tV2CohMZAe3dQWMEEXc"; // Replace with your actual token
+    botInstance = new TelegramBot(token, { polling: true });
 
-bot.onText(/\/3gb1week (.+)/, (msg, match) => {
-  handleShopCommand(msg, match[1], "Panel 3GB - 1 Week");
-});
+    // Add bot handlers
+    botInstance.onText(/\/start/, (msg) => {
+      botInstance.sendMessage(msg.chat.id, "Welcome to the bot!");
+    });
 
-bot.onText(/\/1gb3weeks (.+)/, (msg, match) => {
-  handleShopCommand(msg, match[1], "Panel 1GB - 3 Weeks");
-});
+    // Handle shop commands
+    botInstance.onText(/\/3gb2weeks (.+)/, (msg, match) => {
+      handleShopCommand(msg, match[1], "Panel 3GB - 2 Weeks");
+    });
 
-// Process shop command
+    botInstance.onText(/\/3gb1week (.+)/, (msg, match) => {
+      handleShopCommand(msg, match[1], "Panel 3GB - 1 Week");
+    });
+
+    botInstance.onText(/\/1gb3weeks (.+)/, (msg, match) => {
+      handleShopCommand(msg, match[1], "Panel 1GB - 3 Weeks");
+    });
+
+    console.log("Telegram bot started...");
+  }
+  return botInstance;
+}
+
+// Function to handle shop commands
 function handleShopCommand(msg, credentials, itemDescription) {
   try {
     // Validate input
     const [username, password] = credentials.split(":");
     if (!username || !password) {
-      bot.sendMessage(msg.chat.id, "Invalid format. Use: /<command> username:password");
+      botInstance.sendMessage(
+        msg.chat.id,
+        "Invalid format. Use: /<command> username:password"
+      );
       return;
     }
 
-    // Ensure shop file exists
+    // Ensure shop file exists and load data
     let shopData = [];
     if (fs.existsSync(shopFile)) {
       const fileContent = fs.readFileSync(shopFile);
@@ -48,12 +65,23 @@ function handleShopCommand(msg, credentials, itemDescription) {
     fs.writeFileSync(shopFile, JSON.stringify(shopData, null, 2));
 
     // Notify the user of success
-    bot.sendMessage(
+    botInstance.sendMessage(
       msg.chat.id,
       `Item successfully added to the shop!\n\nItem: ${itemDescription}\nUsername: ${username}\nPassword: ${password}\nLink: https://panel.navocloud.com`
     );
   } catch (error) {
     console.error("Error updating shop.json:", error);
-    bot.sendMessage(msg.chat.id, "An error occurred while processing your request. Please try again.");
+    botInstance.sendMessage(
+      msg.chat.id,
+      "An error occurred while processing your request. Please try again."
+    );
   }
+}
+
+// Export the bot creation function
+module.exports = createBot;
+
+// Initialize the bot if running this file directly
+if (require.main === module) {
+  createBot();
 }
