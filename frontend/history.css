@@ -1,0 +1,110 @@
+/* style.css */
+
+/* Reset and base styles */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Container styling */
+#history-container {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  width: 90%;
+  max-width: 600px;
+}
+
+/* Header styling */
+#history-container h1 {
+  font-size: 32px;
+  margin-bottom: 20px;
+  color: #ffdf70;
+}
+
+/* Transaction list styling */
+#transaction-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Individual transaction styling */
+#transaction-list li {
+  padding: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #fff;
+  font-size: 16px;
+  transition: background 0.3s;
+}
+
+#transaction-list li:last-child {
+  border-bottom: none;
+}
+
+#transaction-list li:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Timestamp styling */
+.timestamp {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Back button styling */
+#back-btn {
+  margin-top: 20px;
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #ff5858, #ff0000);
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+#back-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Responsive design */
+@media (max-width: 600px) {
+  #history-container {
+    padding: 20px;
+  }
+
+  #history-container h1 {
+    font-size: 28px;
+  }
+
+  #transaction-list li {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  #back-btn {
+    font-size: 14px;
+  }
+}
