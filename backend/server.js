@@ -190,7 +190,7 @@ app.post("/send", (req, res) => {
 app.get("/transactions", (req, res) => {
   const { username } = req.query;
 
-  // Validate username
+  // Validate the username
   if (!username) {
     return res.status(400).json({ success: false, message: "Username is required." });
   }
@@ -198,25 +198,21 @@ app.get("/transactions", (req, res) => {
   // Load user data from db.json
   let db;
   try {
-    db = JSON.parse(fs.readFileSync(dbPath, "utf-8"));
+    db = JSON.parse(fs.readFileSync(dbPath, "utf8"));
   } catch (error) {
     console.error("Error reading db.json:", error);
     return res.status(500).json({ success: false, message: "Internal server error." });
   }
 
+  // Check if the user exists
   const user = db[username];
-
-  // Validate if user exists
   if (!user) {
     return res.status(404).json({ success: false, message: "User not found." });
   }
 
-  // Return transactions
-  if (user.transactions && user.transactions.length > 0) {
-    return res.json({ success: true, transactions: user.transactions });
-  } else {
-    return res.json({ success: true, transactions: [] });
-  }
+  // Return the user's transactions
+  const transactions = user.transactions || [];
+  return res.json({ success: true, transactions });
 });
 
 // Stake route
