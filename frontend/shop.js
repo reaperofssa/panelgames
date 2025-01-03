@@ -6,47 +6,59 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
+  const balanceDisplay = document.getElementById("balance");
+  const purchaseDetails = document.getElementById("purchase-details");
+
+  // Fetch and display user's balance
+  const fetchBalance = async () => {
+    try {
+      const response = await fetch(`/balance?username=${currentUser}`);
+      const data = await response.json();
+      balanceDisplay.textContent = data.balance.toFixed(2);
+    } catch (error) {
+      console.error("Error fetching balance:", error);
+      alert("Failed to fetch balance.");
+    }
+  };
+
   // Attach click event to all "buy" buttons
   document.querySelectorAll(".buy-btn").forEach(button => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", async () => {
       const item = button.getAttribute("data-item");
 
-      fetch("/buy", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: currentUser, item }),
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            // Display purchase details
-            const { message } = data;
-            alert(message);
-
-            // Update the balance display
-            fetch(`/balance?username=${currentUser}`)
-              .then(res => res.json())
-              .then(balanceData => {
-                document.getElementById("balance").textContent = balanceData.balance.toFixed(2);
-              });
-
-            // Update purchase confirmation details
-            const purchaseDetails = document.getElementById("purchase-details");
-            purchaseDetails.innerHTML = `
-              <p><strong>Purchase Successful!</strong></p>
-              <p>Username: ${currentUser}</p>
-              <p>Password: Hidden for security</p>
-              <p>Panel Link: <a href="https://panel.navocloud.com" target="_blank">https://panel.navocloud.com</a></p>
-            `;
-            purchaseDetails.style.display = "block";
-          } else {
-            alert(data.message);
-          }
-        })
-        .catch(err => {
-          console.error("Error processing purchase:", err);
-          alert("An error occurred. Please try again.");
+      try {
+        // Send purchase request
+        const response = await fetch("/buy", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: currentUser, item }),
         });
+        const data = await response.json();
+
+        if (data.success) {
+          // Fetch username and password from shop.json
+          const shopResponse = await fetch(`/shop/${currentUser}`);
+          const shopData = await shopResponse.json();
+
+          // Display purchase details
+          purchaseDetails.innerHTML = `
+            <p><strong>Purchase Successful!</strong></p>
+            <p>Item: ${item}</p>
+            <p>Username: ${shopData.username}</p>
+            <p>Password: ${shopData.password}</p>
+            <p>Panel Link: <a href="${shopData.link}" target="_blank">${shopData.link}</a></p>
+          `;
+          purchaseDetails.style.display = "block";
+
+          // Update the balance display
+          fetchBalance();
+        } else {
+          alert(data.message);
+        }
+      } catch (error) {
+        console.error("Error processing purchase:", error);
+        alert("An error occurred. Please try again.");
+      }
     });
   });
 
@@ -54,4 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("back-btn").addEventListener("click", () => {
     window.location.href = "home";
   });
+
+  // Fetch initial balance
+  fetchBalance();
 });
