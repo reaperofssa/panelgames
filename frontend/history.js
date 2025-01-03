@@ -21,18 +21,13 @@ document.addEventListener("DOMContentLoaded", () => {
           const listItem = document.createElement("li");
           
           // Display transaction details dynamically
-          if (typeof transaction === "string") {
-            listItem.textContent = transaction; // For string-based transactions
-          } else if (transaction.type) {
-            // For object-based transactions with type
-            listItem.textContent = `${transaction.type.toUpperCase()} - ${
-              transaction.amount
-            } tokens ${transaction.sender ? `from ${transaction.sender}` : `to ${transaction.recipient}`} on ${
-              new Date(transaction.timestamp).toLocaleString()
-            }`;
-          } else {
-            listItem.textContent = JSON.stringify(transaction); // Fallback for unexpected formats
-          }
+          listItem.textContent = transaction.type
+            ? `${transaction.type.toUpperCase()} - ${
+                transaction.amount
+              } tokens ${
+                transaction.sender ? `from ${transaction.sender}` : `to ${transaction.recipient}`
+              } on ${new Date(transaction.timestamp).toLocaleString()}`
+            : JSON.stringify(transaction); // Fallback for unexpected formats
 
           transactionList.appendChild(listItem);
         });
@@ -51,6 +46,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Back button functionality
   document.getElementById("back-btn").addEventListener("click", () => {
-    window.location.href = "home.html";
+    window.location.href = "home";
   });
 });
