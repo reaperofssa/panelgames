@@ -1,5 +1,5 @@
 document.getElementById("send-token-btn").addEventListener("click", () => {
-  const recipient = document.getElementById("recipient").value;
+  const recipient = document.getElementById("recipient").value.trim();
   const amount = parseFloat(document.getElementById("amount").value);
   const currentUser = localStorage.getItem("currentUser");
 
@@ -21,10 +21,18 @@ document.getElementById("send-token-btn").addEventListener("click", () => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ sender: currentUser, recipient, amount }),
   })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) alert("Transaction successful!");
-      else alert(data.message);
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.success) {
+        alert("Transaction successful!");
+        window.location.reload(); // Refresh balance display
+      } else {
+        alert(data.message);
+      }
+    })
+    .catch((error) => {
+      console.error("Error processing transaction:", error);
+      alert("An error occurred. Please try again.");
     });
 });
 
