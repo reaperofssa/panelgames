@@ -7,16 +7,16 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  let userBalance = 0;
-  let tradingInterval = null;
-  let isTrading = false;
-
   const balanceDisplay = document.getElementById("balance");
   const tradeBtn = document.getElementById("trade-btn");
   const cashoutBtn = document.getElementById("cashout-btn");
   const backBtn = document.getElementById("back-btn");
+  const errorMessage = document.getElementById("error-message");
+  const loadingIndicator = document.getElementById("loading-indicator");
 
-  // Fetch and display user balance
+  let tradeInterval;
+
+  // Fetch and display user's balance
   const fetchBalance = async () => {
     try {
       const response = await fetch(`/balance?username=${currentUser}`);
@@ -28,68 +28,80 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  // Start trading and update balance periodically
-  const startTrading = () => {
-    if (isTrading) return;
-
-    isTrading = true;
-    cashoutBtn.disabled = false;
-
-    tradingInterval = setInterval(() => {
-      const randomChange = (Math.random() * 2 - 1) * 0.12; // Random change between -0.12 and +0.12
-      userBalance += userBalance * randomChange;
-      balanceDisplay.textContent = userBalance.toFixed(2);
-
-      // Save the updated balance to the server
-      fetch("/update-trade", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: currentUser,
-          balance: userBalance,
-          tradeAction: "update",
-        }),
-      }).catch((err) => console.error("Error updating trade balance:", err));
-    }, 1000); // Update every second
-  };
-
-  // Cash out and finalize trading session
-  const cashout = async () => {
-    if (!isTrading) return;
-
-    clearInterval(tradingInterval);
-    isTrading = false;
-    cashoutBtn.disabled = true;
+  // Start trading
+  const startTrade = async () => {
+    errorMessage.classList.add("hidden");
+    loadingIndicator.classList.remove("hidden");
 
     try {
-      const response = await fetch("/cashout", {
+      const response = await fetch("/trade/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: currentUser }),
       });
 
       const data = await response.json();
+      loadingIndicator.classList.add("hidden");
+
       if (data.success) {
+        tradeBtn.disabled = true;
+        cashoutBtn.disabled = false;
+
+        // Start live balance updates
+        tradeInterval = setInterval(fetchBalance, 1000);
+      } else {
+        errorMessage.textContent = data.message;
+        errorMessage.classList.remove("hidden");
+      }
+    } catch (error) {
+      console.error("Error starting trade:", error);
+      alert("Failed to start trade.");
+      loadingIndicator.classList.add("hidden");
+    }
+  };
+
+  // Cash out trade
+  const cashoutTrade = async () => {
+    try {
+      const response = await fetch("/trade/cashout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: currentUser }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        clearInterval(tradeInterval);
         alert(data.message);
-        await fetchBalance(); // Refresh balance after cashout
+        balanceDisplay.textContent = data.newBalance.toFixed(2);
+        tradeBtn.disabled = false;
+        cashoutBtn.disabled = true;
       } else {
         alert(data.message);
       }
     } catch (error) {
-      console.error("Error during cashout:", error);
-      alert("An error occurred while cashing out.");
+      console.error("Error cashing out trade:", error);
+      alert("Failed to cash out trade.");
     }
   };
 
-  // Handle navigation back to home
-  const backToHome = () => {
-    window.location.href = "home";
-  };
-
   // Event listeners
-  tradeBtn.addEventListener("click", startTrading);
-  cashoutBtn.addEventListener("click", cashout);
-  backBtn.addEventListener("click", backToHome);
+  tradeBtn.addEventListener("click", async () => {
+    await startTrade();
+    tradeBtn.disabled = true;
+    cashoutBtn.disabled = false;
+  });
+
+  cashoutBtn.addEventListener("click", async () => {
+    await cashoutTrade();
+    cashoutBtn.disabled = true;
+    tradeBtn.disabled = false;
+  });
+
+  backBtn.addEventListener("click", () => {
+    window.location.href = "home";
+  });
 
   fetchBalance(); // Initial fetch of user's balance
 });
