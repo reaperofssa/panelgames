@@ -1,0 +1,83 @@
+/* style.css */
+
+/* Reset and base styles */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Main container styling */
+#home-container {
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 500px;
+}
+
+/* Welcome text styling */
+#home-container h2 {
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+
+#home-container h2 span {
+  color: #ffd700;
+  font-weight: bold;
+}
+
+/* Balance block */
+#balance {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 15px 20px;
+  font-size: 36px;
+  font-weight: bold;
+  border-radius: 10px;
+  color: #00ffcc;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Button styling */
+#home-container button {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* Button hover effect */
+#home-container button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Responsive design */
+@media (max-width: 600px) {
+  #home-container {
+    padding: 20px;
+  }
+
+  #balance {
+    font-size: 28px;
+  }
+
+  #home-container button {
+    font-size: 14px;
+  }
+}
