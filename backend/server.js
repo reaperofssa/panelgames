@@ -3,6 +3,8 @@ const fs = require("fs");
 const app = express();
 const PORT = 3000;
 
+require("./telegrambot");
+
 app.use(express.json());
 
 const dbFile = "./db.json";
