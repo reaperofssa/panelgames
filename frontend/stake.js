@@ -12,57 +12,52 @@ document.addEventListener("DOMContentLoaded", () => {
   const stakeBtn = document.getElementById("stake-btn");
   const backBtn = document.getElementById("back-btn");
 
-  let currentBalance = 0;
-
   // Fetch and display user's balance
   const fetchBalance = async () => {
-    const response = await fetch(`/balance?username=${currentUser}`);
-    const data = await response.json();
-    currentBalance = data.balance;
-    balanceDisplay.textContent = currentBalance.toFixed(2);
+    try {
+      const response = await fetch(`/balance?username=${currentUser}`);
+      const data = await response.json();
+      balanceDisplay.textContent = data.balance.toFixed(2);
+    } catch (error) {
+      console.error("Error fetching balance:", error);
+      alert("Failed to fetch balance.");
+    }
   };
 
   // Stake tokens
-  const stakeTokens = async () => {
-    const stakeAmount = parseFloat(stakeAmountInput.value);
+  const placeStake = async () => {
+    const amount = parseFloat(stakeAmountInput.value);
 
-    if (isNaN(stakeAmount) || stakeAmount <= 0) {
-      alert("Please enter a valid amount.");
+    if (isNaN(amount) || amount <= 0) {
+      alert("Please enter a valid stake amount.");
       return;
     }
 
-    if (stakeAmount > currentBalance) {
-      alert("Insufficient balance to stake this amount.");
-      return;
-    }
+    try {
+      const response = await fetch("/stake", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: currentUser, amount }),
+      });
 
-    // Simulate staking outcome
-    const won = Math.random() < 0.5; // 50% chance to win
-    const newBalance = won ? currentBalance + stakeAmount : currentBalance - stakeAmount;
-
-    // Update balance immediately on the frontend
-    currentBalance = newBalance;
-    balanceDisplay.textContent = currentBalance.toFixed(2);
-
-    // Send updated balance to the server
-    const response = await fetch("/stake", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: currentUser, newBalance }),
-    });
-
-    const data = await response.json();
-    if (data.success) {
-      alert(won ? `Congratulations! You won ${stakeAmount * 2} tokens.` : "You lost the staked amount.");
-    } else {
-      alert("An error occurred while updating your balance.");
+      const data = await response.json();
+      if (data.success) {
+        alert(data.message);
+        balanceDisplay.textContent = data.newBalance.toFixed(2);
+      } else {
+        alert(data.message);
+      }
+    } catch (error) {
+      console.error("Error placing stake:", error);
+      alert("Failed to place stake.");
     }
   };
 
   // Event listeners
-  document.addEventListener("DOMContentLoaded", fetchBalance);
-  stakeBtn.addEventListener("click", stakeTokens);
+  stakeBtn.addEventListener("click", placeStake);
   backBtn.addEventListener("click", () => {
     window.location.href = "home";
   });
+
+  fetchBalance(); // Initial fetch of user's balance
 });
