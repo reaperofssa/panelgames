@@ -1,0 +1,119 @@
+/* style.css */
+
+/* Reset and base styles */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #1e90ff, #00bfff);
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Container styling */
+#stake-container {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  width: 90%;
+  max-width: 400px;
+}
+
+/* Header styling */
+#stake-container h1 {
+  font-size: 32px;
+  margin-bottom: 20px;
+  color: #ffdf70;
+}
+
+/* Balance display */
+#stake-container p {
+  font-size: 18px;
+  margin: 10px 0 20px;
+}
+
+#balance {
+  font-weight: bold;
+  color: #00ffcc;
+}
+
+/* Input field styling */
+#stake-amount {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 16px;
+  box-shadow: inset 0 4px 6px rgba(0, 0, 0, 0.2);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+#stake-amount:focus {
+  border-color: #00ffcc;
+  box-shadow: 0 0 8px rgba(0, 255, 204, 0.7);
+  outline: none;
+}
+
+/* Button styling */
+button {
+  width: 100%;
+  padding: 15px;
+  margin: 10px 0;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* Stake button */
+#stake-btn {
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
+  color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+#stake-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Back button */
+#back-btn {
+  background: linear-gradient(135deg, #ff5858, #ff0000);
+  color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+#back-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Responsive design */
+@media (max-width: 600px) {
+  #stake-container {
+    padding: 20px;
+  }
+
+  #stake-container h1 {
+    font-size: 28px;
+  }
+
+  #stake-amount {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  button {
+    font-size: 14px;
+    padding: 12px;
+  }
+}
