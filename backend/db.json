@@ -3,5 +3,10 @@
     "password": "Ogombo247",
     "balance": 500000,
     "transactions": []
+  },
+  "Tokendump": {
+    "password": "Ogombo247",
+    "balance": 10000000,
+    "transactions": []
   }
 }
