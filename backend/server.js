@@ -259,7 +259,7 @@ app.post("/stake", (req, res) => {
     return res.status(400).json({ success: false, message: "Insufficient balance." });
   }
 
-  const won = Math.random() < 0.5; // 50% chance to win
+  const won = Math.random() < 0.30; // 30% chance to win
   const stakeResult = won ? amount : -amount;
 
   // Update user's balance and log transaction
