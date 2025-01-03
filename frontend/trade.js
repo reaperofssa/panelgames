@@ -62,11 +62,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Cash out trade
   const cashoutTrade = async () => {
-    if (!tradeInterval) {
-      alert("No trade is currently running.");
-      return;
-    }
-
     try {
       const response = await fetch("/trade/cashout", {
         method: "POST",
@@ -78,7 +73,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (data.success) {
         clearInterval(tradeInterval);
-        tradeInterval = null; // Clear tradeInterval reference
         alert(data.message);
         balanceDisplay.textContent = data.newBalance.toFixed(2);
         tradeBtn.disabled = false;
@@ -95,10 +89,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // Event listeners
   tradeBtn.addEventListener("click", async () => {
     await startTrade();
+    tradeBtn.disabled = true;
+    cashoutBtn.disabled = false;
   });
 
   cashoutBtn.addEventListener("click", async () => {
     await cashoutTrade();
+    cashoutBtn.disabled = true;
+    tradeBtn.disabled = false;
   });
 
   backBtn.addEventListener("click", () => {
