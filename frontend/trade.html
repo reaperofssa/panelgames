@@ -3,17 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trade</title>
+  <title>Trading System</title>
   <link rel="stylesheet" href="trade.css">
 </head>
 <body>
   <div id="trade-container">
     <h1>Trade</h1>
-    <p>Your Balance: <span id="balance">Loading...</span></p>
-    <button id="trade-btn">Trade</button>
-    <button id="cashout-btn" disabled>Cashout</button>
-    <button id="back-btn">Back to Home</button>
+    <p>Your Balance: <span id="balance" aria-live="polite">Loading...</span></p>
+    <div id="error-message" class="hidden"></div>
+    <div id="loading-indicator" class="hidden">Processing...</div>
+    <button id="trade-btn" aria-label="Start trading">Trade</button>
+    <button id="cashout-btn" disabled aria-label="Cash out your balance">Cashout</button>
+    <button id="back-btn" aria-label="Go back to home page">Back to Home</button>
   </div>
+  <noscript>
+    <p>This application requires JavaScript to function. Please enable JavaScript in your browser settings.</p>
+  </noscript>
   <script src="trade.js"></script>
 </body>
 </html>
