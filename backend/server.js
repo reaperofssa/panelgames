@@ -243,16 +243,25 @@ app.post("/stake", (req, res) => {
 
 
 // Start a trade session
+let db = loadDB();
+
+// Start trade session and return user balance
 app.get("/trade", (req, res) => {
   const { username } = req.query;
+
+  if (!username) {
+    return res.status(400).json({ success: false, message: "Username is required." });
+  }
 
   if (!db[username]) {
     return res.status(404).json({ success: false, message: "User not found." });
   }
 
+  const userBalance = db[username].balance || 0;
+
   res.json({
     success: true,
-    balance: db[username].balance,
+    balance: userBalance,
     message: "Trade session started.",
   });
 });
@@ -261,28 +270,35 @@ app.get("/trade", (req, res) => {
 app.post("/update-trade", (req, res) => {
   const { username, amount, tradeAction } = req.body;
 
+  if (!username || amount === undefined || !tradeAction) {
+    return res.status(400).json({ success: false, message: "Invalid request. Please provide username, amount, and trade action." });
+  }
+
   if (!db[username]) {
     return res.status(404).json({ success: false, message: "User not found." });
   }
 
   if (amount <= 0) {
-    return res.status(400).json({ success: false, message: "Invalid amount." });
+    return res.status(400).json({ success: false, message: "Invalid amount. Amount must be greater than zero." });
   }
 
-  if (db[username].balance < amount && tradeAction === "decrease") {
-    return res.status(400).json({ success: false, message: "Insufficient balance." });
+  const userBalance = db[username].balance || 0;
+
+  if (tradeAction === "decrease" && userBalance < amount) {
+    return res.status(400).json({ success: false, message: "Insufficient balance for the trade action." });
   }
 
-  // Update balance based on trade action
+  // Perform trade action
   if (tradeAction === "increase") {
     db[username].balance += amount;
   } else if (tradeAction === "decrease") {
     db[username].balance -= amount;
   } else {
-    return res.status(400).json({ success: false, message: "Invalid trade action." });
+    return res.status(400).json({ success: false, message: "Invalid trade action. Use 'increase' or 'decrease'." });
   }
 
-  // Log the trade transaction
+  // Log the transaction
+  db[username].transactions = db[username].transactions || [];
   db[username].transactions.push({
     type: "trade",
     tradeAction,
@@ -291,7 +307,7 @@ app.post("/update-trade", (req, res) => {
     timestamp: new Date().toISOString(),
   });
 
-  saveDB();
+  saveDB(); // Persist the changes
 
   res.json({
     success: true,
@@ -300,15 +316,19 @@ app.post("/update-trade", (req, res) => {
   });
 });
 
-// Cashout and update user balance
+// Cashout and return the updated balance
 app.post("/cashout", (req, res) => {
   const { username } = req.body;
+
+  if (!username) {
+    return res.status(400).json({ success: false, message: "Username is required." });
+  }
 
   if (!db[username]) {
     return res.status(404).json({ success: false, message: "User not found." });
   }
 
-  const userBalance = db[username].balance;
+  const userBalance = db[username].balance || 0;
 
   res.json({
     success: true,
