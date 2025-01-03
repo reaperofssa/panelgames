@@ -1,6 +1,6 @@
 let currentUser = localStorage.getItem("currentUser");
-let tradeBalance = 0; // Tracks the balance during trading
-let tradingInterval = null; // Interval for random trading changes
+let tradeBalance = 0;
+let tradingInterval = null;
 let isTrading = false;
 
 const balanceDisplay = document.getElementById("balance");
@@ -8,18 +8,23 @@ const tradeBtn = document.getElementById("trade-btn");
 const cashoutBtn = document.getElementById("cashout-btn");
 const backBtn = document.getElementById("back-btn");
 
-// Fetch and display user's current balance
-const fetchBalance = async () => {
+// Fetch and display user's current trade balance
+const fetchTradeBalance = async () => {
   if (!currentUser) {
     alert("User not logged in.");
     window.location.href = "index.html";
     return;
   }
 
-  const response = await fetch(`/balance?username=${currentUser}`);
-  const data = await response.json();
-  tradeBalance = data.balance;
-  balanceDisplay.textContent = tradeBalance.toFixed(2);
+  try {
+    const response = await fetch(`/trade?username=${currentUser}`);
+    const data = await response.json();
+    tradeBalance = data.balance;
+    balanceDisplay.textContent = tradeBalance.toFixed(2);
+  } catch (error) {
+    console.error("Error fetching trade balance:", error);
+    alert("Failed to fetch trade balance.");
+  }
 };
 
 // Start trading: Randomly adjust balance
@@ -44,19 +49,23 @@ const cashout = async () => {
   isTrading = false;
   cashoutBtn.disabled = true;
 
-  const response = await fetch("/cashout", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username: currentUser, newBalance: tradeBalance }),
-  });
+  try {
+    const response = await fetch("/cashout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: currentUser, newBalance: tradeBalance }),
+    });
 
-  const data = await response.json();
-  if (data.success) {
-    alert("Cashout successful! Your new balance is updated.");
-    tradeBalance = 0;
-    await fetchBalance();
-  } else {
-    alert("Cashout failed.");
+    const data = await response.json();
+    if (data.success) {
+      alert(data.message);
+      await fetchTradeBalance(); // Refresh balance after cashout
+    } else {
+      alert("Cashout failed.");
+    }
+  } catch (error) {
+    console.error("Error during cashout:", error);
+    alert("An error occurred while cashing out.");
   }
 };
 
@@ -66,7 +75,7 @@ const backToHome = () => {
 };
 
 // Event listeners
-document.addEventListener("DOMContentLoaded", fetchBalance);
+document.addEventListener("DOMContentLoaded", fetchTradeBalance);
 tradeBtn.addEventListener("click", startTrading);
 cashoutBtn.addEventListener("click", cashout);
 backBtn.addEventListener("click", backToHome);
