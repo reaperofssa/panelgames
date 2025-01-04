@@ -30,11 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const response = await fetch(`/balance?username=${currentUser}`);
       const data = await response.json();
-      if (data.success) {
-        balanceDisplay.textContent = data.balance.toFixed(2);
-      } else {
-        alert(data.message);
-      }
+      balanceDisplay.textContent = data.balance.toFixed(2);
     } catch (error) {
       console.error("Error fetching balance:", error);
       alert("Failed to fetch balance.");
