@@ -214,6 +214,115 @@ app.get("/shop/:username", (req, res) => {
   }
 });
 
+// Weighted random function for crash point
+const generateCrashPoint = () => {
+  const weights = [];
+  let cumulativeWeight = 0;
+
+  // Define weighted probabilities
+  for (let i = 1; i <= 10; i += 0.1) {
+    const value = parseFloat(i.toFixed(1));
+
+    // Assign higher weights to 1.0–1.56
+    let weight;
+    if (value <= 1.56) {
+      weight = 5 / value; // High weight for low values
+    } else if (value <= 2.5) {
+      weight = 2 / value; // Medium weight
+    } else {
+      weight = 1 / (value * 2); // Low weight for higher values
+    }
+
+    cumulativeWeight += weight;
+    weights.push({ value, cumulativeWeight });
+  }
+
+  // Generate random crash point based on weighted probabilities
+  const random = Math.random() * cumulativeWeight;
+  return weights.find((w) => random <= w.cumulativeWeight).value;
+};
+
+app.post("/avstake", (req, res) => {
+  const { username, amount } = req.body;
+
+  if (!db[username]) {
+    return res.status(404).json({ success: false, message: "User not found." });
+  }
+
+  if (amount <= 0) {
+    return res.status(400).json({ success: false, message: "Invalid stake amount." });
+  }
+
+  if (db[username].balance < amount) {
+    return res.status(400).json({ success: false, message: "Insufficient balance." });
+  }
+
+  // Deduct stake amount
+  db[username].balance -= amount;
+
+  // Generate crash point
+  const crashPoint = generateCrashPoint();
+  const gameId = new Date().getTime(); // Unique game ID
+
+  db[username].transactions.push({
+    gameId,
+    type: "stake",
+    amount,
+    outcome: "in-progress",
+    crashPoint,
+    timestamp: new Date().toISOString(),
+  });
+
+  saveDB();
+
+  res.json({
+    success: true,
+    message: "Game started. Place your cashout before the crash!",
+    crashPoint,
+    newBalance: db[username].balance,
+    gameId,
+  });
+});
+
+// Endpoint to handle cashout
+app.post("/avcashout", (req, res) => {
+  const { username, gameId, multiplier } = req.body;
+
+  if (!db[username]) {
+    return res.status(404).json({ success: false, message: "User not found." });
+  }
+
+  const transaction = db[username].transactions.find(
+    (tx) => tx.gameId === gameId && tx.outcome === "in-progress"
+  );
+
+  if (!transaction) {
+    return res.status(400).json({ success: false, message: "Invalid game or already cashed out." });
+  }
+
+  if (multiplier > transaction.crashPoint) {
+    transaction.outcome = "crashed";
+    saveDB();
+    return res.status(400).json({ success: false, message: "The plane crashed! You lost your stake." });
+  }
+
+  // Calculate winnings and update balance
+  const winnings = transaction.amount * multiplier;
+  db[username].balance += winnings;
+
+  transaction.outcome = "cashed-out";
+  transaction.result = winnings;
+
+  saveDB();
+
+  res.json({
+    success: true,
+    message: `Cashed out successfully at ${multiplier.toFixed(2)}x. You won ${winnings.toFixed(2)} tokens!`,
+    newBalance: db[username].balance,
+    winnings,
+  });
+});
+
 app.get("/transactions", (req, res) => {
   // Get the username from headers or query parameters
   const username = req.headers.username || req.query.username;
@@ -259,7 +368,7 @@ app.post("/stake", (req, res) => {
     return res.status(400).json({ success: false, message: "Insufficient balance." });
   }
 
-  const won = Math.random() < 0.40; // 40% chance to win
+  const won = Math.random() < 0.46; // 47% chance to win
   const stakeResult = won ? amount : -amount;
 
   // Update user's balance and log transaction
