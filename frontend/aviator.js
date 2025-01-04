@@ -15,7 +15,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const plane = document.getElementById("plane");
   const multiplierDisplay = document.getElementById("multiplier");
 
-  let balance = 0;
   let multiplier = 1.0;
   let crashPoint = 0;
   let stakeAmount = 0;
@@ -32,8 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const response = await fetch(`/balance?username=${currentUser}`);
       const data = await response.json();
       if (data.success) {
-        balance = data.balance || 0; // Prevent undefined balance
-        balanceDisplay.textContent = balance.toFixed(2);
+        balanceDisplay.textContent = data.balance.toFixed(2);
       } else {
         alert(data.message);
       }
@@ -47,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const startGame = async () => {
     stakeAmount = parseFloat(stakeAmountInput.value);
 
-    if (isNaN(stakeAmount) || stakeAmount <= 0 || stakeAmount > balance) {
+    if (isNaN(stakeAmount) || stakeAmount <= 0) {
       alert("Invalid stake amount.");
       return;
     }
@@ -61,8 +59,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const data = await response.json();
       if (data.success) {
-        balance = data.newBalance || balance; // Update balance to ensure synchronization
-        balanceDisplay.textContent = balance.toFixed(2);
         crashPoint = data.crashPoint;
         gameId = data.gameId;
         multiplier = 1.0;
@@ -76,6 +72,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Start animation loop
         animateGame();
+
+        // Fetch updated balance
+        fetchBalance();
       } else {
         alert(data.message);
       }
@@ -123,15 +122,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const data = await response.json();
       if (data.success) {
-        balance = data.newBalance || balance; // Ensure balance is updated
-        balanceDisplay.textContent = balance.toFixed(2);
-
         alert(
           `You cashed out at ${multiplier.toFixed(2)}x. Winnings: ${data.winnings.toFixed(
             2
           )}`
         );
         resetGame();
+
+        // Fetch updated balance
+        fetchBalance();
       } else {
         alert(data.message);
       }
@@ -147,7 +146,6 @@ document.addEventListener("DOMContentLoaded", () => {
     plane.style.transform = "translateX(0px)";
     cashoutBtn.disabled = true;
     stakeBtn.disabled = false;
-    fetchBalance();
   };
 
   // Event listeners
