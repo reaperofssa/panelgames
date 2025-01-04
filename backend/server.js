@@ -292,52 +292,44 @@ app.post("/avstake", (req, res) => {
 });
 
 // Endpoint to handle cashout
-app.post("/avstake", (req, res) => {
-  const { username, amount } = req.body;
+app.post("/avcashout", (req, res) => {
+  const { username, gameId, multiplier } = req.body;
 
   if (!db[username]) {
     return res.status(404).json({ success: false, message: "User not found." });
   }
 
-  if (amount <= 0 || isNaN(amount)) {
-    return res.status(400).json({ success: false, message: "Invalid stake amount." });
+  const transactions = db[username].transactions || []; // Ensure transactions array exists
+  const transaction = transactions.find(
+    (tx) => tx.gameId === gameId && tx.outcome === "in-progress"
+  );
+
+  if (!transaction) {
+    return res.status(400).json({ success: false, message: "Invalid game or already cashed out." });
   }
 
-  if (db[username].balance === undefined || isNaN(db[username].balance)) {
-    return res.status(500).json({ success: false, message: "User balance is undefined." });
+  if (multiplier > transaction.crashPoint) {
+    transaction.outcome = "crashed";
+    saveDB();
+    return res.status(400).json({ success: false, message: "The plane crashed! You lost your stake." });
   }
 
-  if (db[username].balance < amount) {
-    return res.status(400).json({ success: false, message: "Insufficient balance." });
-  }
+  // Calculate winnings and update balance
+  const winnings = transaction.amount * multiplier;
+  db[username].balance += winnings;
 
-  // Deduct stake amount
-  db[username].balance -= amount;
+  transaction.outcome = "cashed-out";
+  transaction.result = winnings;
 
-  // Generate crash point
-  const crashPoint = generateCrashPoint();
-  const gameId = new Date().getTime(); // Unique game ID
-
-  // Add transaction for the game
-  db[username].transactions = db[username].transactions || []; // Ensure transactions array exists
-  db[username].transactions.push({
-    gameId,
-    type: "stake",
-    amount,
-    outcome: "in-progress",
-    crashPoint,
-    timestamp: new Date().toISOString(),
-  });
-
-  // Save changes to the database
   saveDB();
 
   res.json({
     success: true,
-    message: "Game started. Place your cashout before the crash!",
-    crashPoint,
+    message: `Cashed out successfully at ${multiplier.toFixed(2)}x. You won ${winnings.toFixed(
+      2
+    )} tokens!`,
     newBalance: db[username].balance,
-    gameId,
+    winnings,
   });
 });
 
