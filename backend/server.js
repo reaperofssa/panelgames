@@ -249,8 +249,12 @@ app.post("/avstake", (req, res) => {
     return res.status(404).json({ success: false, message: "User not found." });
   }
 
-  if (amount <= 0) {
+  if (amount <= 0 || isNaN(amount)) {
     return res.status(400).json({ success: false, message: "Invalid stake amount." });
+  }
+
+  if (db[username].balance === undefined || isNaN(db[username].balance)) {
+    return res.status(500).json({ success: false, message: "User balance is undefined." });
   }
 
   if (db[username].balance < amount) {
@@ -264,6 +268,8 @@ app.post("/avstake", (req, res) => {
   const crashPoint = generateCrashPoint();
   const gameId = new Date().getTime(); // Unique game ID
 
+  // Add transaction for the game
+  db[username].transactions = db[username].transactions || []; // Ensure transactions array exists
   db[username].transactions.push({
     gameId,
     type: "stake",
@@ -273,6 +279,7 @@ app.post("/avstake", (req, res) => {
     timestamp: new Date().toISOString(),
   });
 
+  // Save changes to the database
   saveDB();
 
   res.json({
@@ -285,41 +292,52 @@ app.post("/avstake", (req, res) => {
 });
 
 // Endpoint to handle cashout
-app.post("/avcashout", (req, res) => {
-  const { username, gameId, multiplier } = req.body;
+app.post("/avstake", (req, res) => {
+  const { username, amount } = req.body;
 
   if (!db[username]) {
     return res.status(404).json({ success: false, message: "User not found." });
   }
 
-  const transaction = db[username].transactions.find(
-    (tx) => tx.gameId === gameId && tx.outcome === "in-progress"
-  );
-
-  if (!transaction) {
-    return res.status(400).json({ success: false, message: "Invalid game or already cashed out." });
+  if (amount <= 0 || isNaN(amount)) {
+    return res.status(400).json({ success: false, message: "Invalid stake amount." });
   }
 
-  if (multiplier > transaction.crashPoint) {
-    transaction.outcome = "crashed";
-    saveDB();
-    return res.status(400).json({ success: false, message: "The plane crashed! You lost your stake." });
+  if (db[username].balance === undefined || isNaN(db[username].balance)) {
+    return res.status(500).json({ success: false, message: "User balance is undefined." });
   }
 
-  // Calculate winnings and update balance
-  const winnings = transaction.amount * multiplier;
-  db[username].balance += winnings;
+  if (db[username].balance < amount) {
+    return res.status(400).json({ success: false, message: "Insufficient balance." });
+  }
 
-  transaction.outcome = "cashed-out";
-  transaction.result = winnings;
+  // Deduct stake amount
+  db[username].balance -= amount;
 
+  // Generate crash point
+  const crashPoint = generateCrashPoint();
+  const gameId = new Date().getTime(); // Unique game ID
+
+  // Add transaction for the game
+  db[username].transactions = db[username].transactions || []; // Ensure transactions array exists
+  db[username].transactions.push({
+    gameId,
+    type: "stake",
+    amount,
+    outcome: "in-progress",
+    crashPoint,
+    timestamp: new Date().toISOString(),
+  });
+
+  // Save changes to the database
   saveDB();
 
   res.json({
     success: true,
-    message: `Cashed out successfully at ${multiplier.toFixed(2)}x. You won ${winnings.toFixed(2)} tokens!`,
+    message: "Game started. Place your cashout before the crash!",
+    crashPoint,
     newBalance: db[username].balance,
-    winnings,
+    gameId,
   });
 });
 
