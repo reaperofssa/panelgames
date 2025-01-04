@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let isRunning = false;
 
   // Audio for game
-  const gameMusic = new Audio("music.mp3"); // Replace with your music file
+  const gameMusic = new Audio("https://files.catbox.moe/leh52a.mp3"); // Replace with your music file
   gameMusic.loop = true; // Loop the music
 
   // Fetch and display user's balance
