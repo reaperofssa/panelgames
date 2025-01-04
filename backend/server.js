@@ -53,7 +53,7 @@ app.get("/send", (req, res) => res.sendFile(path.join(__dirname, "../frontend/se
 app.get("/stake", (req, res) => res.sendFile(path.join(__dirname, "../frontend/stake.html")));
 app.get("/trade", (req, res) => res.sendFile(path.join(__dirname, "../frontend/trade.html")));
 app.get("/index.html", (req, res) => res.sendFile(path.join(__dirname, "../frontend/index.html")));
-
+app.get("/aviator", (req, res) => res.sendFile(path.join(__dirname, "../frontend/aviator.html")));
 // Login endpoint
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
