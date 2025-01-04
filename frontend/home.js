@@ -38,6 +38,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Navigate to Transaction History page
   document.getElementById("history-btn").addEventListener("click", () => {
-    window.location.href = "history.html";
+    window.location.href = "aviator.html";
   });
 });
