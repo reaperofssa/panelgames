@@ -24,14 +24,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Audio for game
   const gameMusic = new Audio("https://files.catbox.moe/leh52a.mp3"); // Replace with your music file
-  gameMusic.loop = true; // Loop the music
+  gameMusic.loop = true;
 
   // Fetch and display user's balance
   const fetchBalance = async () => {
     try {
       const response = await fetch(`/balance?username=${currentUser}`);
       const data = await response.json();
-      balanceDisplay.textContent = data.balance.toFixed(2);
+      if (data.success) {
+        balance = data.balance || 0; // Prevent undefined balance
+        balanceDisplay.textContent = balance.toFixed(2);
+      } else {
+        alert(data.message);
+      }
     } catch (error) {
       console.error("Error fetching balance:", error);
       alert("Failed to fetch balance.");
@@ -56,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const data = await response.json();
       if (data.success) {
-        balance = data.newBalance;
+        balance = data.newBalance || balance; // Update balance to ensure synchronization
         balanceDisplay.textContent = balance.toFixed(2);
         crashPoint = data.crashPoint;
         gameId = data.gameId;
@@ -118,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const data = await response.json();
       if (data.success) {
-        balance = data.newBalance;
+        balance = data.newBalance || balance; // Ensure balance is updated
         balanceDisplay.textContent = balance.toFixed(2);
 
         alert(
