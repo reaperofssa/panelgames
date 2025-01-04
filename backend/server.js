@@ -220,24 +220,26 @@ const generateCrashPoint = () => {
   let cumulativeWeight = 0;
 
   // Define weighted probabilities
-  for (let i = 1; i <= 10; i += 0.1) {
+  for (let i = 1.0; i <= 10; i += 0.1) {
     const value = parseFloat(i.toFixed(1));
 
-    // Assign higher weights to 1.0–1.56
+    // Assign weighted probabilities
     let weight;
     if (value <= 1.56) {
-      weight = 5 / value; // High weight for low values
+      weight = 6 / value; // Higher weight for 1.00 to 1.56
+    } else if (value <= 2.0) {
+      weight = 3 / value; // Medium weight for 1.57 to 2.0
     } else if (value <= 2.5) {
-      weight = 2 / value; // Medium weight
+      weight = 1.5 / value; // Lower weight for 2.01 to 2.5
     } else {
-      weight = 1 / (value * 2); // Low weight for higher values
+      weight = 0.8 / (value * 1.5); // Very low weight for higher values
     }
 
     cumulativeWeight += weight;
     weights.push({ value, cumulativeWeight });
   }
 
-  // Generate random crash point based on weighted probabilities
+  // Generate random crash point based on cumulative weights
   const random = Math.random() * cumulativeWeight;
   return weights.find((w) => random <= w.cumulativeWeight).value;
 };
