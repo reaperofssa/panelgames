@@ -226,13 +226,13 @@ const generateCrashPoint = () => {
     // Assign weighted probabilities
     let weight;
     if (value <= 1.46) {
-      weight = 12 / value; // Very high weight for 1.00 to 1.46 (42% target)
+      weight = 8 / value; // Reduced weight for 1.00 to 1.46 (less frequent crashes)
     } else if (value <= 1.99) {
-      weight = 3 / value; // Medium weight for 1.47 to 1.99 (to balance the distribution)
+      weight = 4 / value; // Slightly increased weight for 1.47 to 1.99
     } else if (value <= 2.5) {
-      weight = 9 / value; // High weight for 2.00 to 2.50 (46% target)
+      weight = 12 / value; // Significantly increased weight for 2.00 to 2.50
     } else {
-      weight = 1 / (value * 2); // Low weight for 2.51 to 10.00 (12% target)
+      weight = 1.5 / (value * 2); // Slightly increased weight for 2.51 to 10.00
     }
 
     cumulativeWeight += weight;
