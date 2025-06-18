@@ -7,7 +7,7 @@ const shopFile = "./shop.json";
 // Function to create and initialize the bot
 function createBot() {
   if (!botInstance) {
-    const token = "7928488118:AAH5GNgLlnJkdZT6tV2CohMZAe3dQWMEEXc"; // Replace with your actual token
+    const token = "7586020555:AAGZL-qgWrPJrvVQ2xBxmnSPICA6yDK8saM"; // Replace with your actual token
     botInstance = new TelegramBot(token, { polling: true });
 
     // Add bot handlers
